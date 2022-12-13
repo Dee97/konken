@@ -1,0 +1,193 @@
+{% extends "base_generic.html" %}
+{% load widget_tweaks %}
+{% load attendance_extras %} 
+{% block content %}
+<div class="mb-5 container" id = "app">
+    <h1 class="text-center text-info mb-3">祝日リスト</h1>
+    <div class="row justify-content-end mb-3 col-11">
+        <div class="row">
+            {% if user.is_superuser %}
+                <a href="{% url 'holidays-import' %}" class="btn btn-info">CSVをインポート</a>
+            {% endif %}
+            <button type="button" class="btn btn-info mx-2" data-toggle="modal" @click="getAction(true)">
+                祝日を追加
+            </button>
+            <form id="deleteForm2">
+                {% csrf_token %}
+                <input type="hidden" name="deleteAll" value="deleteAll" >
+                <button class="btn btn-danger" @click="deleteObject(null)">全部削除</button>
+            </form>
+        </div>
+    </div>
+    <table class="table table-hover col-11 mx-auto" v-if ="holidays !== null">
+        <thead>
+            <tr>
+                <th>日付</th>
+                <th>祝日名</th>
+                <th>備考</th>
+                <th> </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for= "holiday in holidays">
+                <td class="align-middle">
+                    [[ formattedDate(holiday.date) ]]
+                </td>
+                <td class="align-middle">
+                    [[ holiday.name ]]
+                </td>
+                <td class="align-middle">
+                    [[ holiday.remarks ]]
+                </td>
+                <td>
+                    <div class="row">
+                        <button class="btn btn-info mr-2" @click="setVals(holiday.date, holiday.name, holiday.remarks);getAction(false,holiday.id);">変更</button>
+                        <form id="deleteForm" method="POST" action="{%url 'holiday' %}holiday.id/">
+                            {% csrf_token %}
+                            <button class="btn btn-danger" @click="deleteObject(holiday.id)">削除</button>
+                        </form>
+                    </div>
+                    
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="holidayModal" tabindex="-1" role="dialog" aria-labelledby="holidayModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="holidayModalTitle">[[ holiday_modal_title ]]</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+                <form id="holidayForm" method="POST" class="col-11 mx-auto">
+                    {% csrf_token %}
+                    {% if error %}
+                        <div class="p-3 mb-2 bg-danger text-white">
+                            {% for key, value in form.errors.items %}
+                                {{ value }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-group">
+                        {{ form.date.label_tag }}
+                        {{ form.date }}
+                        <div class="text-danger">{{ form.date.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.name.label_tag }}
+                        {{ form.name }}
+                        <div class="text-danger">{{ form.name.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.remarks.label_tag }}
+                        {{ form.remarks }}
+                        <div class="text-danger">{{ form.remarks.errors }}</div>
+                    </div>
+                    <!-- <button type="submit" class="btn btn-info my-4 btn-block" @click="handleSubmit($event)">保存</button> -->
+                    <button type="submit" class="btn btn-info my-4 btn-block">保存</button>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+    var app = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        data: {
+            holidays: null,
+            links: null,
+            holiday_modal_title: '祝日を追加',
+            create_or_edit: 'create',
+            to_create: null,
+            to_delete: null,
+        },
+        mounted: function(){
+            this.getHolidays()
+            error = "{{ error }}"
+            if (error)
+                $('#holidayModal').modal('show')
+        },
+        computed: {
+            
+        },
+        methods: {
+            getHolidays: function(){
+                axios
+                    .get("{%url 'holiday' %}")
+                    .then( response => {
+                        this.holidays = null
+                        this.links = null
+                        this.holidays = response.data.results
+                        this.links = response.data.links
+                    }
+                    )
+            },
+            formattedDate: function(date_string){
+                return dayjs(date_string).format('YYYY年MM月DD日')
+            },
+            getAction: function(action, id){
+                if (id != null)
+                    this.create_or_edit = id
+                this.to_create = action
+                if (this.to_create){
+                    url = "{%url 'holidays-list' %}"
+                    this.holiday_modal_title = '祝日を追加'
+                    this.clearVals()
+                }
+                else {
+                    this.holiday_modal_title = "祝日を変更"
+                    url = "{%url 'holiday' %}".concat(this.create_or_edit).concat("/")
+                }
+                $('#holidayForm').attr('action', url)
+                $('#holidayModal').modal('show')
+            },
+            setVals: function(date, name, remarks){
+                $('#id_date').val(date)
+                $('#id_name').val(name)
+                $('#id_remarks').val(remarks)
+            },
+            clearVals: function(){
+                $('#id_date').val("")
+                $('#id_name').val("")
+                $('#id_remarks').val("")
+            },
+            deleteObject: function(id){
+                event.preventDefault()
+                if(confirm('削除しますか？')){
+                    if (id != null){
+                        url = "{%url 'holiday' %}".concat(id).concat("/")
+                        formData = new FormData(document.getElementById("deleteForm"));
+                    }
+                    else{
+                        url = "{%url 'holiday' %}"
+                        formData = new FormData(document.getElementById("deleteForm2"));
+                    }
+                        formData.append('delete', 'delete');
+                    axios
+                        .post(url, formData)
+                        .then(response => {
+                            this.getHolidays()
+                            console.log("successfully deleted!")
+                            location.reload()
+                            // TODO: ADD CATCH FOR ALL REQUESTS
+                        })
+                }
+            },
+        }
+    })
+</script>
+
+{% endblock %}

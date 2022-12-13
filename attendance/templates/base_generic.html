@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.8.21/dayjs.min.js"></script>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <link rel="shortcut icon" href="{% static 'smaller_favicon.ico' %}"/>
+    {% block title %}
+      <title>
+        {% if user.is_authenticated %}
+            {% if user.is_superuser %}
+              AttendanceBot
+            {% else %}
+              {{ user.cramschool.name|default_if_none:"AttendanceBot" }}
+            {% endif %}
+        {% else %}
+          AttendanceBot
+        {% endif %}
+      </title> 
+    {% endblock %}
+</head>
+  <body>
+    <div class="container-fluid" style="padding: 0;">
+    {% block nav %}
+      <nav class="navbar navbar-expand-lg navbar-dark bg-info mb-4">
+        <a class="navbar-brand" href="{% url 'index' %}">
+          {% if user.is_authenticated%}
+            {% if user.is_superuser %}
+              AttendanceBot
+            {% else %}
+              {{ user.cramschool.name|default_if_none:"AttendanceBot" }}
+            {% endif %}
+          {% else %}
+            AttendanceBot
+          {% endif %}
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul class="navbar-nav mr-auto">
+            {% if user.is_authenticated %}
+            {% if user.groups.all.0.name == "Teachers" or user.is_staff%}
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'user-list' %} active {% endif %}" href="{% url 'user-list' %}">ユーザリスト</a>
+              </li>
+              {% endif %}
+              {% if user.is_staff %}
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'user-register' %} active {% endif %}" href="{% url 'user-register' %}">ユーザ登録</a>
+                </li>
+                {% if user.is_superuser %}
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'holidays-list' %} active {% endif %}" href="{% url 'holidays-list' %}">祝日リスト</a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'schools-list' %} active {% endif %}" href="{% url 'schools-list' %}">学校リスト</a>
+                </li>
+              {% endif %}
+              {% if user.groups.all.0.name == "Teachers" or user.groups.all.0.name == "Students" %}
+                <li class="nav-item">
+                  <a class="nav-link {% if request.resolver_match.url_name == 'attendance_list' %} active {% endif %}" href="{% url 'attendance_list' id=user.id %}">履歴</a>
+                </li>
+              {% endif %}
+              {% if user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'change-password' %} active {% endif %}" href="{% url 'change-password' %}">パスワード変更</a>
+              </li>
+              {% endif %}
+            {% endif %}
+
+            
+          </ul>
+          <ul class="navbar-nav ml-auto">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <span class="nav-link disabled">こんにちは、{{ user.first_name|default_if_none:"ゲスト" }}さん。</span>
+            </li>
+            {% endif %}
+
+            {% if user.is_superuser %}
+              <a class="btn btn-light text-dark mr-2" href="/super-duper-admin">Superuser Site</a>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="btn btn-light text-dark {% if request.resolver_match.url_name == 'logout' %} active {% endif %}" href="{% url 'logout' %}?next=/accounts/login/">サインアウト</a>
+            {% else %}
+              <a class="btn btn-light text-dark {% if request.resolver_match.url_name == 'login' %} active {% endif %}" href="/accounts/login/">サインイン</a>
+            {% endif %}
+          </li>
+          </ul>
+        </div>
+      </nav>
+    {% endblock %}
+
+    <div class="container">
+      {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-dismissible fade show alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    </div>
+    {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>
+

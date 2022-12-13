@@ -1,0 +1,79 @@
+{% extends "base_generic.html" %}
+{% block title %}<title>KONKEN - 入退出の履歴</title> {% endblock %}
+{% load attendance_extras %} 
+
+{% block content %}
+<div id = "app" class="container mb-5">
+    <div class="container">
+        <h2 class="text-center text-info">{{ queried_user.last_name|default_if_none:"" }}{{ queried_user.first_name|default_if_none:""}}さんの履歴</h2>
+    </div>
+    <div class="container d-none d-sm-block">
+        <div class="row">
+            <div class="mr-auto">
+                <a href="{% url 'attendance_list' id=queried_user.id%}?month={{ month_data.prev_month|date:'n' }}&year={{ month_data.prev_month|date:'Y' }}" class="btn btn-info mx-2">先月</a>
+
+                <a href="{% url 'attendance_list' id=queried_user.id%}?month={{ month_data.next_month|date:'n' }}&year={{ month_data.next_month|date:'Y' }}" class="btn btn-info">来月</a>
+            </div>
+            <div class="ml-auto d-inline-flex">
+                {% if user.is_staff %}
+                <form action="{% url 'attendance-export' id=queried_user.id %}" class="form-inline" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="month_year" v-model="picker_val">
+                    <button class="btn btn-info" type="submit">CSV出力</button>
+                </form>
+                {% endif %}
+                <input id="month_picker" :value="picker_year + '-' + picker_month.toString().padStart(2,'0')" v-model="picker_val" class="form-control mx-2" type="month" id="month_year" name="month_year">
+                <a :href="'{% url 'attendance_list' id=queried_user.id%}?month=' + picker_month + '&year=' + picker_year " class="btn btn-info">選択</a>
+            </div>
+        </div>
+    </div>
+    <div class="container d-block d-sm-none mt-2">
+        <div class="row">
+            <div class="mx-auto">
+                <a href="{% url 'attendance_list' id=queried_user.id%}?month={{ month_data.prev_month|date:'n' }}&year={{ month_data.prev_month|date:'Y' }}" class="btn btn-info mx-2">先月</a>
+
+                <a href="{% url 'attendance_list' id=queried_user.id%}?month={{ month_data.next_month|date:'n' }}&year={{ month_data.next_month|date:'Y' }}" class="btn btn-info">来月</a>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="mx-auto d-inline-flex">
+                <input id="month_picker" :value="picker_year + '-' + picker_month.toString().padStart(2,'0')" v-model="picker_val" class="form-control mx-2" type="month" id="month_year" name="month_year">
+                <a :href="'{% url 'attendance_list' id=queried_user.id%}?month=' + picker_month + '&year=' + picker_year " class="btn btn-info">選択</a>
+            </div>
+        </div>
+    </div>
+    {{ calendar }}
+
+    <br>
+
+</div>
+
+<script>
+    var app = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        data: {
+            picker_val: ""
+        },
+        mounted: function(){
+            year = "{{ month_data.now|date:'Y' }}"
+            month = "{{ month_data.now|date:'n' }}"
+            this.picker_val = year + '-' + month.padStart(2,'0')
+        },
+        computed: {
+            picker_year: function(){
+                return parseInt(this.picker_val.substring(0,4))
+            },
+            picker_month: function(){
+                return parseInt(this.picker_val.substring(5,7))
+            },
+            choose_url: function(){
+                initial = "{% url 'attendance_list' id=queried_user.id%}"
+                add = "?month=" + this.picker_month + "&year=" + this.picker_year
+                return initial + add
+            }
+        },
+    })
+</script>
+{% endblock %}
+

@@ -1,0 +1,50 @@
+.calendar {
+    width: 98%;
+    margin: auto;
+    font-size: 0.8rem;
+    table-layout: fixed;
+  }
+  
+  .calendar tr, .calendar td {
+    border: 1px solid black;
+  }
+  
+  .calendar th {
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 1.2rem;
+  }
+  
+  .calendar td {
+    width: 2rem;
+    height: 7rem;
+    padding: 0.2rem 0 0 0.2rem;
+    vertical-align: text-top;
+  }
+  
+  .month {
+    font-size: 1.5rem;
+  }
+  
+  .date {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .calendar ul {
+    list-style-type: none;
+    padding-inline-start: 3px;
+    padding-inline-end: 3px;
+}
+  
+  calendar.a {
+    color: #17a2b8;
+  }
+
+  @media (max-width: 415px){
+    .container{
+      min-width:100% !important;
+      max-width:100% !important;
+      padding:2px !important;
+    }
+   }

@@ -1,0 +1,13 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1 class="text-center mt-5 text-info">
+    {% if user.is_authenticated%}
+      {% if user.is_superuser %}
+        AttendanceBot
+      {% else %}
+        {{ user.cramschool.name|default_if_none:"AttendanceBot" }}
+      {% endif %}
+    {% endif %}
+    へようこそ</h1>
+{% endblock %}

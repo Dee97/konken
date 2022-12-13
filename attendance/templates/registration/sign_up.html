@@ -1,0 +1,289 @@
+{% extends "base_generic.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="row justify-content-center mb-5" id = "app">
+    {% if user.is_superuser %}
+    <form class ="col-8" id="userForm" method="POST">
+    {% else %}
+    <form class ="col-8" id="userForm" method="POST" onsubmit="document.getElementById('id_cramschool').disabled = false;">
+    {% endif %} 
+        <h1 class="text-center text-info mb-3">{% verbatim %}{{ page_title }}{% endverbatim %}</h1>
+        {% csrf_token %}
+        {% if user.groups.all.0.name == "Teachers" %}
+            <div class="form-group" v-show="seen">
+                {{ form.user_type.label_tag}}
+                {% render_field form.user_type|attr:"readonly" %}
+            </div>
+        {% else %}
+            <div class="form-group">
+                {{ form.user_type.label_tag}}
+                {% render_field form.user_type @change="onChange($event)" %}
+            </div>
+        {% endif %}
+        <label>名前</label>
+        <div class="form-row">
+            <div class="col">
+                {{ form.last_name }} {% if form.last_name.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+                <div class="text-danger">{{ form.last_name.errors }}</div>
+            </div>
+            <div class="col">
+                {{ form.first_name }} {% if form.first_name.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+                <div class="text-danger">{{ form.last_name.errors }}</div>
+            </div>
+        </div>
+        <div class="form-row my-3">
+            <div class="col">
+                {{form.last_name_kana}} {% if form.last_name_kana.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+                <div class="text-danger">{{ form.first_name_kana.errors }}</div>
+            </div>
+            <div class="col">
+                {{form.first_name_kana}} {% if form.first_name_kana.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+                <div class="text-danger">{{ form.first_name_kana.errors }}</div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="id_id_number">[[ id_label ]]:</label> {% if form.id_number.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.id_number }}
+            <div class="text-danger">{{ form.id_number.errors }}</div>
+        </div>
+        <div class="form-group">
+            {{ form.card_id.label_tag }} {% if form.card_id.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            <div class="form-row">
+                <div class="col-sm-8 col-6">
+                    {% render_field form.card_id|default_if_none:"" v-model="card_number" %}
+                    <div class="text-danger">{{ form.card_id.errors }}</div>
+                </div>
+                <div class="col-sm-4 col-6">
+                    <button type="button" class="btn btn-info btn-block" data-toggle="modal" data-target="#cardIdModal">
+                        カードID選択
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            {{ form.printed_card_id.label_tag}} {% if form.printed_card_id.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.printed_card_id }}
+            <div class="text-danger">{{ form.printed_card_id.errors }}</div>
+        </div>
+        <div class="form-group"　id="year_level_div">
+            {{ form.year_level.label_tag}} {% if form.year_level.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.year_level }}
+            <div class="text-danger">{{ form.year_level.errors }}</div>
+        </div>
+        <div class="form-group" id="school_div">
+            {{ form.school.label_tag}} {% if form.school.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.school }}
+            <div class="text-danger">{{ form.school.errors }}</div>
+        </div>
+       
+        <div class="form-group">
+            {{ form.cramschool.label_tag}} {% if form.cramschool.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {% if user.is_superuser %}
+            {{ form.cramschool }}
+            {% else %}
+                {% render_field form.cramschool|attr:"disabled:disabled" %}
+            {% endif %} 
+            <div class="text-danger">{{ form.cramschool.errors }}</div>
+        </div>
+        
+        <div class="form-group">
+            {{ form.birthdate.label_tag }} {% if form.birthdate.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {% render_field form.birthdate min="1940-01-01" %}
+            <div class="text-danger">{{ form.birthdate.errors }}</div>
+        </div>
+
+        <div class="form-group my-0">
+            <div>性別:{% if form.sex.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}</div> 
+            {% for radio in form.sex %}
+                <div class="form-check form-check-inline ml-3">
+                    {% render_field radio %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {{ form.sex.choices }}
+        
+        <div class="form-group">
+            {{ form.postal_code.label_tag }} {% if form.postal_code.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.postal_code }}
+            <div class="text-danger">{{ form.postal_code.errors }}</div>
+        </div>
+        <div class="form-group">
+            {{ form.address_1.label_tag }} {% if form.address_1.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.address_1 }}
+            <div class="text-danger">{{ form.address_1.errors }}</div>
+        </div>
+        <div class="form-group">
+            {{ form.address_2.label_tag }} {% if form.address_2.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.address_2 }}
+            <div class="text-danger">{{ form.address_2.errors }}</div>
+        </div>
+        <div class="form-group">
+            {{ form.telephone_num.label_tag }} {% if form.telephone_num.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.telephone_num }}
+            <div class="text-danger">{{ form.telephone_num.errors }}</div>
+        </div>
+        <div class="form-group">
+            {{ form.mobile_num_1.label_tag }} {% if form.mobile_num_1.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.mobile_num_1 }}
+            <div class="text-danger">{{ form.mobile_num_1.errors }}</div>
+        </div>
+        <div class="form-group">
+            {{ form.mobile_num_2.label_tag }} {% if form.mobile_num_2.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.mobile_num_2 }}
+            <div class="text-danger">{{ form.mobile_num_2.errors }}</div>
+        </div>
+        <div class="form-group">
+            {{ form.email.label_tag }} {% if form.email.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.email }}
+            <div class="text-danger">{{ form.email.errors }}</div>
+        </div>
+        <div class="form-group" v-show="seen">
+            <input type="text" name="username" placeholder="username" maxlength="150" id="id_username" class="form-control">
+            {{ form.password1 }}
+            {{ form.password2 }}
+        </div>
+        <button type="submit" class="btn btn-info mt-3 btn-block">保存</button>
+    </form>
+
+    <!-- Modal -->
+    <div class="modal fade" id="cardIdModal" tabindex="-1" role="dialog" aria-labelledby="cardModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle">カードID選択</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+            <table class="table table-hover" v-if ="cards !== null">
+                <thead>
+                    <tr>
+                        <!-- <th>日付</th> -->
+                        <th>時間</th>
+                        <th>カードID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for= "card in cards" @dblclick="dblEvent(card_number=card.card_id)">
+                        <!-- <td>
+                            [[ card.date ]]
+                        </td> -->
+                        <td>
+                            [[ card.time ]]
+                        </td>
+                        <td>
+                            [[ card.card_id ]]
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            </div>
+            <div class="modal-footer">
+            <button type="button" class="btn btn-info" @click="getCards">リストを更新</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+</div>
+
+<script src="https://unpkg.com/vue/dist/vue.js">
+    var app = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        data: {
+            seen: false,
+            card_number: '',
+            cards: null,
+            action_button: '',
+            page_title:'',
+            id_label:'生徒番号'
+        },
+        mounted: function(){
+            card_number = "{{ form.card_id.value }}"
+            if (card_number == "None" ){
+                this.card_number = ""
+            }
+            else {
+                this.card_number = card_number
+            }
+            this.setPlaceholderPasswords()
+            this.getAction()
+            this.getType()
+            this.getCards()
+            this.setUserType()
+        },
+        methods: {
+            setUserType: function(){
+                user_type = "{{ user_group }}"
+                if (user_type != ""){
+                    $("#id_user_type").val(user_type);
+                }
+            },
+            setPlaceholderPasswords: function(){
+                console.log('setting passwords')
+                if ($('#password1').val() == '' && $('#password2').val() == ''){
+                    $('#password1').val('placeholderpass');
+                    $('#password2').val('placeholderpass');
+                }
+            },
+            getType: function(){
+                console.log("get type...")
+                is_admin = "{{ request.user.is_staff }}"
+                is_teacher = "{{ user.groups.all.0.name }}"
+                console.log(is_teacher)
+                console.log(is_teacher == "Teachers")
+            },
+            getAction:function(){
+                console.log("getting action...")
+                id_num = "{{ changing_user_id }}"
+                if (id_num != 'None' ){
+                    this.page_title = '変更'
+                    $('#userForm').attr('action', "{%url 'user-detail' id=changing_user_id %}")
+                }
+                else {
+                    this.page_title = '登録'
+                    $('#userForm').attr('action',"{%url 'user-register' %}")
+                }
+            },
+            getCards: function(){
+                axios
+                .get("{%url 'card' %}")
+                .then( response => {
+                    console.log(response.data)
+                    this.cards = response.data
+                }
+                )
+                
+            },
+            dblEvent: function(card_number) {
+                this.card_number = card_number
+                $('#cardIdModal').modal('hide')
+            },
+            onChange: function(event){
+                console.log("On change...")
+                console.log(event.target.value)
+                val = event.target.value
+                if (val == "Teachers") {
+                    $('#id_id_number').attr('placeholder',"先生番号")
+                    this.id_label = "先生番号"
+                    $('#year_level_div').attr('style',"display: none;")
+                    $('#school_div').attr('style', "display:none;")
+                }
+                else {
+                    $('#id_id_number').attr('placeholder',"生徒番号")
+                    this.id_label = "生徒番号"
+                    $('#year_level_div').attr('style',"display: display;")
+                    $('#school_div').attr('style', "display: display;")
+                }
+            }
+        }
+    })
+</script>
+
+{% endblock %}

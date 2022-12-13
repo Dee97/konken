@@ -1,0 +1,192 @@
+{% extends "base_generic.html" %}
+{% load widget_tweaks %}
+{% block content %}
+
+<div class="mb-5 container" id = "year">
+    <h1 class="text-center text-info mb-3">学校リスト</h1>
+
+    <div class="row justify-content-end mb-3 col-11">
+        <div class="row">
+           
+            <button type="button" class="btn btn-info mx-2" data-toggle="modal" @click="getAction(true)">
+                学校を追加
+            </button>
+            <form id="deleteForm2">
+                {% csrf_token %}
+                <input type="hidden" name="deleteAll" value="deleteAll" >
+                <button class="btn btn-danger" @click="deleteObject(null)">全部削除</button>
+            </form>
+        </div>
+    </div>
+    <table class="table table-hover col-11 mx-auto" v-if ="schools !== null">
+        <thead>
+            <tr>
+                <th>学校CD</th>
+                <th>学校名</th>
+                <th>学校区分</th>
+                <th> </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for= "school in schools">
+                <td class="align-middle">
+                    [[ school.school_code ]]
+                </td>
+                <td class="align-middle">
+                    [[ school.school_name ]]
+                </td>
+                <td class="align-middle">
+                    [[ school.level_division_name ]]
+                </td>
+                <td>
+                    <div class="row">
+                        <button class="btn btn-info mr-2" @click="setVals(school.school_code, school.school_name, school.level_division);getAction(false,school.school_code);">変更</button>
+                        <form id="deleteForm" method="POST" action="{%url 'school' %}school.school_code/">
+                            {% csrf_token %}
+                            <button class="btn btn-danger" @click="deleteObject(school.school_code)">削除</button>
+                        </form>
+                    </div>
+                    
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Modal -->
+    <div class="modal fade" id="schoolModal" tabindex="-1" role="dialog" aria-labelledby="schoolModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="schoolModalTitle">[[ school_modal_title ]]</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body">
+                <form id="schoolForm" method="POST" class="col-11 mx-auto">
+                    {% csrf_token %}
+                    {% if error %}
+                        <div class="p-3 mb-2 bg-danger text-white">
+                            {% for key, value in form.errors.items %}
+                                {{ value }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <div class="form-group">
+                        {{ form.school_code.label_tag }}
+                        {{ form.school_code }}
+                        <div class="text-danger">{{ form.school_code.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.school_name.label_tag }}
+                        {{ form.school_name }}
+                        <div class="text-danger">{{ form.school_name.errors }}</div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.level_division.label_tag }}
+                        {{ form.level_division }}
+                        <div class="text-danger">{{ form.level_division.errors }}</div>
+                    </div>
+                    <!-- <button type="submit" class="btn btn-info my-4 btn-block" @click="handleSubmit($event)">保存</button> -->
+                    {% if user.is_superuser %}
+                        {{ form.cramschool.label_tag}}
+                        {{ form.cramschool }}
+                    {% endif%}
+                    <button type="submit" class="btn btn-info my-4 btn-block">保存</button>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    {% include 'attendance/pagination.html' with links=links %}
+
+</div>
+
+<script>
+    var app = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#year',
+        data: {
+            schools: null,
+            links: null,
+            school_modal_title: '学校を追加',
+            create_or_edit: 'create',
+            to_create: null,
+            to_delete: null,
+        },
+        mounted: function(){
+            this.getSchools()
+            error = "{{ error }}"
+            if (error)
+                $('#schoolModal').modal('show')
+        },
+        methods: {
+            getSchools: function(){
+                axios
+                    .get("{%url 'school' %}")
+                    .then( response => {
+                        this.schools = null
+                        this.links = null
+                        this.schools = response.data.results
+                        this.links = response.data.links
+                        console.log(response.data.results)
+                    }
+                    )
+            },
+            formattedDate: function(date_string){
+                return dayjs(date_string).format('YYYY年MM月DD日')
+            },
+            getAction: function(action, id){
+                if (id != null)
+                    this.create_or_edit = id
+                this.to_create = action
+                if (this.to_create){
+                    url = "{%url 'schools-list' %}"
+                    this.school_modal_title = '祝日を追加'
+                    this.clearVals()
+                }
+                else {
+                    this.school_modal_title = "祝日を変更"
+                    url = "{%url 'school' %}".concat(this.create_or_edit).concat("/")
+                }
+                $('#schoolForm').attr('action', url)
+                $('#schoolModal').modal('show')
+            },
+            setVals: function(code, name, division){
+                $('#id_school_code').val(code)
+                $('#id_school_name').val(name)
+                $('#id_level_division').val(division)
+            },
+            clearVals: function(){
+                $('#id_date').val("")
+                $('#id_name').val("")
+                $('#id_remarks').val("")
+            },
+            deleteObject: function(id){
+                event.preventDefault()
+                if(confirm('削除しますか？')){
+                    if (id != null){
+                        url = "{%url 'school' %}".concat(id).concat("/")
+                        formData = new FormData(document.getElementById("deleteForm"));
+                    }
+                    else{
+                        url = "{%url 'school' %}"
+                        formData = new FormData(document.getElementById("deleteForm2"));
+                    }
+                        formData.append('delete', 'delete');
+                    axios
+                        .post(url, formData)
+                        .then(response => {
+                            this.getSchools()
+                            console.log("successfully deleted!")
+                            location.reload()
+                            // TODO: ADD CATCH FOR ALL REQUESTS
+                        })
+                }
+            },
+        }
+    })
+</script>
+
+{% endblock %}

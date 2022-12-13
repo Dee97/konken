@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <form method="POST" action="{%url 'refresh-menu' %}" class="col-5">
+        <h1>Refresh Rich Menu</h1>
+        {% if context %}
+            <div class="alert alert-success" role="alert">
+                {{ context }}
+            </div>
+        {% endif %}
+        {% csrf_token %}
+        <button type="submit" class="btn btn-info mt-3 btn-block">Refresh Menu</button>
+    </form>
+</div>
+{% endblock %}

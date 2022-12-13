@@ -1,0 +1,35 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container justify-content-center" id="app">
+    {% if results %}
+    <table class="table table-hover col-11 mx-auto" >
+        <thead>
+            <tr>
+                <th>日付</th>
+                <th>時間</th>
+                <th>カードID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for card in results %}
+                <tr class = "stretched-link" data-href="">
+                    <td>
+                        {{ card.date }}
+                    </td>
+                    <td>
+                        {{ card.time }}
+                    </td>
+                    <td>
+                        {{ card.card_id }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <h2>No logs to show.</h2>
+    {% endif %}
+    {% include 'attendance/pagination.html' with links=links %}
+</div>
+{% endblock %}

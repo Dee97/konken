@@ -1,0 +1,36 @@
+{% extends "base_generic.html" %}
+
+{% load attendance_extras %} 
+
+{% block content %}
+
+    {% if error %}
+        <h3 class = "text-center">{{ error }}</h3>
+    {% endif %}
+    {% if results %}
+        <table class="table text-center">
+            <thead>
+                <tr>
+                    <th>名前</th>
+                    <th> </th>
+                </tr>
+            </thead>
+        {% for item in results %}
+        <tr>
+            <td class="text-left">
+                {{ item.last_name }} {{ item.first_name }}
+            </td>
+            <td>
+                <a href="{%url 'attendance_list' id=item.id %}" class="btn btn-info">表示</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </table>
+        
+        {% include 'attendance/pagination.html' with links=links %}
+        
+    {% elif not results and not error %}
+        <p>生徒がありません。</p>
+    {% endif %}
+{% endblock %}
+

@@ -1,0 +1,89 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+<div class="container justify-content-center" id="app">
+    {% if user.is_staff %}
+        <h1 class="text-center text-info mb-3">ユーザリスト</h1>
+    {% else %}
+        <h1 class="text-center text-info mb-3">生徒リスト</h1>
+    {% endif %}
+    
+    
+    {% if user.is_staff or user.groups.all.0.name == "Teachers" %}
+        <div class="row mx-auto mb-3 col-11">
+            <div class="mr-auto">
+                <form action="{% url 'user-list'%}" method="POST" class="form-inline">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="searchUser" class="sr-only">ユーザ検索</label>
+                        <input type="text" class="form-control" id="searchUser" placeholder="ユーザ" name="query"> 
+                    </div>
+                    {% if user.is_staff  %}
+                    <div class="form-group ml-2">
+                        <label for="filterUser" class="sr-only">ユーザフィルター</label>
+                        <select class="form-control" id= "filterUser" name="filter">
+                            <option value = "both">生徒と先生</option>
+                            <option value = "Students">生徒</option>
+                            <option value = "Teachers">先生</option>
+                          </select>
+                    </div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-info ml-3">検索</button>
+                </form>
+            </div>
+            {% if user.is_superuser %}
+            <div class="ml-auto">
+                <a href="{% url 'user-import' %}" class="btn btn-info">CSVをインポート</a>
+            </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if results %}
+    <table class="table table-hover col-11 mx-auto" >
+        <thead>
+            <tr>
+                <th>ID番号</th>
+                <th>名前</th>
+                <th>学年</th>
+                <th>生年月日</th>
+                <th> </th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in results %}
+                <tr class = "stretched-link" data-href="">
+                    <td>
+                        {{ user.id_number|default_if_none:"" }}
+                    </td>
+                    <td>
+                        {{ user.last_name|default_if_none:"" }}{{ user.first_name|default_if_none:"" }}
+                    </td>
+                    <td>
+                        {{ user.year_level_name|default_if_none:"" }}
+                    </td>
+                    <td>
+                        {{ user.birthdate|default_if_none:"" }}
+                    </td>
+                    <td class="justify-content-center row">
+                        <a href="{%url 'attendance_list' id=user.id %}" class="btn btn-info">履歴</a>
+                        {% if request.user.is_staff %}
+                        <a href="{% url 'attendance-export' id=user.id %}" class="btn btn-info mx-2">CSV出力</a>
+                            <a href="{%url 'user-detail' id=user.id %}" class="btn btn-info mr-2">変更</a>
+                            <form id="deleteForm" action="{%url 'user-detail' id=user.id %}" method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="delete" value="delete">
+                                <input type="submit" onclick="return confirm('削除しますか？')" class="btn btn-danger" value="削除"/>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <h4 class="text-center my-5 text-danger">結果がありません。</h4>
+    {% endif %}
+    {% include 'attendance/pagination.html' with links=links %}
+</div>
+{% endblock %}

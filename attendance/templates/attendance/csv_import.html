@@ -1,0 +1,41 @@
+{% extends "base_generic.html" %}
+{% load rest_framework %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <form action="" method="POST" enctype="multipart/form-data" class="col-5">
+            {% csrf_token %}
+            {% if errors %}
+                <div class="p-3 mb-2 bg-danger text-white">{{ errors }}</div>
+            {% endif %}
+            <div class="form-group">
+                <label for="file1"> CSVアップロード </label>
+                <input type="file" id="file1" name="file" class="form-control-file">
+                <small class="text-muted">(ファイルのエンコーディングはUTF-8であることを確認してください。)</small>
+            </div>
+            {% if request.resolver_match.url_name == 'holidays-import' %}
+            <div class="form-check my-2">
+                <input type="checkbox" class="form-check-input" id="checkbox" name="replace_all" value="True">
+                <label class="form-check-label text-danger" for="checkbox">すべての祝日をCSVのデータに置き換えますか？</label>
+            </div>
+            {% endif %}
+
+            {% if request.resolver_match.url_name == 'user-import' and request.user.is_staff %}
+            <div class="form-group">
+                <label for="id_user_type">ユーザタイプ:</label> 
+                <select name="user_group" class="form-control">
+                    <option value="Students">生徒</option> 
+                    <option value="Teachers">先生</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                {{ form.cramschool.label_tag }}
+                {{ form.cramschool }}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-info btn-block">アップロード</button>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base_generic.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="row justify-content-center mb-5" id = "app">
+    {% if user.is_superuser %}
+        <form class ="col-8" id="userForm" method="POST">
+    {% else %}  
+        <form class ="col-8" id="userForm" method="POST" onsubmit="document.getElementById('id_cramschool').disabled = false;">
+    {% endif %} 
+        {% csrf_token %}
+        <h1 class="text-center text-info mb-3">[[ page_title ]]</h1>
+        
+        {% comment %}
+        <div class="form-group">
+            {{ form.school_code.label_tag }} {% if form.school_code.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.school_code }}
+            <div class="text-danger">{{ form.school_code.errors }}</div>
+        </div>
+        {% endcomment %}
+
+        <div class="form-group">
+            {{ form.school_name.label_tag }} {% if form.school_name.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.school_name }}
+            <div class="text-danger">{{ form.school_name.errors }}</div>
+        </div>
+
+        <div class="form-group">
+            {{ form.level_division.label_tag }} {% if form.level_division.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {{ form.level_division }}
+            <div class="text-danger">{{ form.level_division.errors }}</div>
+        </div>
+
+        <div class="form-group">
+            {{ form.cramschool.label_tag }} {% if form.cramschool.field.required %} <span class="text-danger font-weight-bold">*</span> {% endif %}
+            {% if user.is_superuser %}
+                {{ form.cramschool }}
+            {% else %}
+                {% render_field form.cramschool|attr:"disabled:disabled" %}
+            {% endif %} 
+            <div class="text-danger">{{ form.cramschool.errors }}</div>
+        </div>
+
+        <button type="submit" class="btn btn-info mt-3 btn-block">保存</button>
+    </form>
+</div>
+
+<script>
+    var app = new Vue({
+        delimiters: ['[[', ']]'],
+        el: '#app',
+        data: {
+            seen: false,
+            action_button: '',
+            page_title:'',
+        },
+        mounted: function(){
+            this.getAction()
+        },
+        methods: {
+            getAction:function(){
+                console.log("getting action...")
+                id_num = "{{ changing_school_code }}"
+                if (id_num != 'None' ){
+                    console.log("edit")
+                    this.page_title = '変更'
+                    $('#userForm').attr('action', "{%url 'school-detail' code=changing_school_code %}")
+                }
+                else {
+                    console.log("create")
+                    this.page_title = '登録'
+                    $('#userForm').attr('action',"{%url 'school' %}")
+                }
+            },
+        }
+    })
+</script>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% load attendance_extras %} 
+    <nav aria-label="Page navigation example" >
+        <ul class="pagination justify-content-center">
+            <li class="page-item">
+                {% if links.previous %}
+                <a class="page-link text-info" href="{{links.previous}}">前へ</a>
+                {% endif %}
+            </li>
+
+            {% if links.current|add:'-4' > 1 %}
+                <li><a href="?page={{ links.current|add:'-5' }}" class="page-link text-info">&hellip;</a></li>
+            {% endif %}
+
+            {% for i in links.total_pages|times %}
+                {% if links.current == i|add:'1' %}
+                    <li class="page-item active">
+                        <a class="page-link bg-info border-info" href="?page={{ i|add:'1' }}">{{ i|add:'1' }}<span class="sr-only">(current)</span></a>
+                    </li>
+
+                {% elif i|add:'1' > links.current|add:'-5' and i|add:'1' < links.current|add:'5' %}
+                    <li><a href="?page={{ i|add:'1' }}" class="page-link text-info">{{ i|add:'1' }}</a></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if links.total_pages > links.current|add:'4' %}
+                <li><a href="?page={{ links.current|add:'5' }}" class="page-link text-info">&hellip;</a></li>
+            {% endif %}
+
+        <li class="page-item">
+                {% if links.next %}
+                <a class="page-link text-info" href="{{links.next}}">次へ</a>
+                {% endif %}
+            </li>
+        </ul>
+    </nav>

@@ -1,0 +1,52 @@
+{
+  "richMenu": {
+    "size": {
+      "width": 2500,
+      "height": 1686
+    },
+    "selected": true,
+    "name": "attendance",
+    "chatBarText": "メニュー",
+    "areas": [
+      {
+        "bounds": {
+          "x": 25,
+          "y": 515,
+          "width": 1191,
+          "height": 549
+        },
+        "action": {
+          "type": "postback",
+          "text": "登録",
+          "data": "menu_register"
+        }
+      },
+      {
+        "bounds": {
+          "x": 1275,
+          "y": 515,
+          "width": 1208,
+          "height": 553
+        },
+        "action": {
+          "type": "postback",
+          "text": "検索",
+          "data": "student_search"
+        }
+      },
+      {
+        "bounds": {
+          "x": 25,
+          "y": 1102,
+          "width": 2450,
+          "height": 562
+        },
+        "action": {
+          "type": "postback",
+          "text": "履歴",
+          "data": "latest_records"
+        }
+      }
+    ]
+  }
+}

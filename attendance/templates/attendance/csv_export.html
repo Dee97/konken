@@ -1,0 +1,27 @@
+{% extends "base_generic.html" %}
+{% load rest_framework %}
+
+{% block content %}
+    <div class="" id = "app">
+
+        <div class="row col-5 mx-auto">
+            <h5 class="text-center">出力：{{ user_data.last_name }}{{ user_data.first_name }}</h5>
+        </div>
+
+        <form action="" method="POST" class="col-5 mx-auto mt-3">
+            {% csrf_token %}
+            {% if errors %}
+                <div class="p-3 mb-2 bg-danger text-white">{{ errors }}</div>
+            {% endif %}
+
+            <div class="form-group">
+
+                <input class="form-control" type="month" id="month_year" name="month_year" value="{{ month_data.now|date:'Y' }}-{{ month_data.now|date:'n' }}">
+            </div>
+
+            <input type="hidden" name="id_number" value="{{ user_data.id_number }}">
+            <button type="submit" class="btn btn-info btn-block">出力</button>
+        </form>
+    </div>
+
+{% endblock %}

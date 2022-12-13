@@ -1,0 +1,50 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+
+  
+  
+<div class="row justify-content-center">
+  {% if user.is_authenticated %}
+
+    <h3 class="mt-5 text-center text-info">
+      ログイン済みです。
+    </h3>
+  
+  {% else%}
+  <form method="post" action="{% url 'login' %}" class = "col-5">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="id_username">ID番号</label>
+      <input class="form-control" id="{{ form.username.id_for_label }}" maxlength="30" name="{{ form.username.html_name }}" type="text" /> 
+    </div>
+    <div class="form-group">
+      <label for="id_password">パスワード</label>
+      <input class="form-control" id="{{ form.password.id_for_label }}" maxlength="40" name="{{ form.password.html_name }}" type="password" />
+    </div>
+    <div class="text-danger">
+      {% if form.errors %}
+      <p>Your username and password didn't match. Please try again.</p>
+      {% endif %}
+      
+      {% if next %}
+        {% if user.is_authenticated %}
+          <p>Your account doesn't have access to this page. To proceed,
+          please login with an account that has access.</p>
+        {% else %}
+          <p>Please login to see this page.</p>
+        {% endif %}
+      {% endif %}
+    </div>
+    
+    <button type="submit" class="btn btn-info mt-3 btn-block">サインイン</button>
+    <input type="hidden" name="next" value="{{ next }}" />
+    {# Assumes you setup the password_reset view in your URLconf #}
+  <!-- <p class="text-center mt-2"><a href="{% url 'password_reset' %}">パスワード再発行</a></p> -->
+  </form>
+  
+  {% endif %}
+
+</div>
+  
+{% endblock %}
